@@ -18,6 +18,8 @@
 
 package com.uncharted.mugshots.service;
 
+import co.elastic.clients.elasticsearch._types.KnnQuery;
+import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
@@ -65,19 +67,44 @@ public class ImageDataService {
         s3Client.createBucket(config.getAwsBucketName());
     }
 
-    public byte[] getImage(String url) throws IOException {
+    private byte[] getImage(String url) throws IOException {
         AmazonS3URI s3URI = new AmazonS3URI(url);
         var obj = s3Client.getObject(s3URI.getBucket(), s3URI.getKey());
         return IOUtils.toByteArray(obj.getObjectContent());
     }
 
+    public List<byte[]> findByImage(MultipartFile image) throws IOException {
+
+        var imageData = getImageDataFromFile(image);
+
+        var vector = getVector(imageData);
+
+        var query = new KnnQuery.Builder().field("vector").queryVector(vector).k(config.getNumberOfKnnResults()).numCandidates(config.getNumberOfKnnCandidates()).build();
+
+        var results = elasticsearchService.getClient().search(s ->
+                s.index(config.getEsIndex())
+                        .size(10)
+                        .knn(query), Mugshot.class);
+
+
+        var urls = results.hits().hits().stream().map(Hit::source).filter(Objects::nonNull).map(Mugshot::getUrl).collect(Collectors.toList());
+
+        var data = urls.stream().map(u -> {
+            try {
+                return getImage(u);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+
+        return data;
+    }
+
     public void storeImages(MultipartFile[] files) throws Exception {
         var mugshots = Arrays.stream(files).map(file -> {
-            ImageData data = new ImageData();
-            data.setType(file.getContentType());
-            data.setName(file.getOriginalFilename());
             try {
-                data.setImageData(file.getBytes());
+                var data = getImageDataFromFile(file);
                 var url = storeImageInS3(data);
                 var vector = getVector(data);
 
@@ -93,6 +120,14 @@ public class ImageDataService {
         }).filter(Objects::nonNull).collect(Collectors.toList());
 
         elasticsearchService.index(config.getEsIndex(), mugshots);
+    }
+
+    private ImageData getImageDataFromFile(MultipartFile file) throws IOException {
+        ImageData data = new ImageData();
+        data.setType(file.getContentType());
+        data.setName(file.getOriginalFilename());
+        data.setImageData(file.getBytes());
+        return data;
     }
 
 

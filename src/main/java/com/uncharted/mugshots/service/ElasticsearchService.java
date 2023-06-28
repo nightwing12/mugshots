@@ -44,6 +44,7 @@ import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.client.indices.IndexTemplatesExistRequest;
 import org.elasticsearch.client.indices.PutIndexTemplateRequest;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.xcontent.XContentType;
 import org.springframework.beans.factory.annotation.Value;
@@ -125,6 +126,7 @@ public class ElasticsearchService {
 
     private void createIndex(String index) throws IOException {
         CreateIndexRequest req = new CreateIndexRequest(index);
+        req.settings(Settings.builder().put("index.number_of_shards", 1).put("index.number_of_replicas", 0).build());
         restHighLevelClient.indices().create(req, RequestOptions.DEFAULT);
     }
 

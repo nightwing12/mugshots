@@ -29,4 +29,7 @@ public class MugshotConfig {
     String awsAccessKey;
     String awsBucketName;
     String esIndex;
+
+    long numberOfKnnResults = 10;
+    long numberOfKnnCandidates = 50;
 }

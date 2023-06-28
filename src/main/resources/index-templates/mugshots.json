@@ -21,7 +21,7 @@
           "type": "dense_vector",
           "dims": 512,
           "index": true,
-          "similarity": "dot_product"
+          "similarity": "cosine"
         },
         "name": {
           "type": "text"

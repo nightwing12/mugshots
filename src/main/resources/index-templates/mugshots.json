@@ -2,7 +2,7 @@
   "index_patterns": [
     "*_mugshots_1.0"
   ],
-  "version": 1,
+  "version": 2,
   "template": {
     "settings": {
       "index": {
@@ -19,7 +19,7 @@
         },
         "vector": {
           "type": "dense_vector",
-          "dims": 768,
+          "dims": 512,
           "index": true,
           "similarity": "dot_product"
         },

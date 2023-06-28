@@ -18,8 +18,24 @@
 
 package com.uncharted.mugshots.rest;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping("/api")
 public class MugshotController {
+
+    @PutMapping(value = "/index-images")
+    public ResponseEntity<String> indexImages() {
+        return ResponseEntity.ok("yay");
+    }
+
+    @GetMapping(value = "/find-images")
+    public ResponseEntity<String> findImages() {
+        return ResponseEntity.ok("yay");
+    }
+
 }

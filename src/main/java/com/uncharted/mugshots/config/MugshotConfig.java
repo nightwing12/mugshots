@@ -28,4 +28,5 @@ public class MugshotConfig {
     String awsKeyId;
     String awsAccessKey;
     String awsBucketName;
+    String esIndex;
 }

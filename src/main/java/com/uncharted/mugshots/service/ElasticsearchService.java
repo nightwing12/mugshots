@@ -27,6 +27,7 @@ import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.uncharted.mugshots.config.MugshotConfig;
 import com.uncharted.mugshots.model.Mugshot;
 import jakarta.annotation.PostConstruct;
 import lombok.Data;
@@ -39,6 +40,8 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.client.indices.IndexTemplatesExistRequest;
 import org.elasticsearch.client.indices.PutIndexTemplateRequest;
 import org.elasticsearch.rest.RestStatus;
@@ -58,6 +61,7 @@ import java.util.UUID;
 public class ElasticsearchService {
 
     private final ObjectMapper mapper;
+    private final MugshotConfig config;
 
     private ElasticsearchClient client = null;
 
@@ -67,7 +71,7 @@ public class ElasticsearchService {
     private Resource[] resourceIndexTemplates;
 
     @PostConstruct
-    public void init() {
+    public void init() throws IOException {
         RestClientBuilder httpClientBuilder = RestClient.builder(
                 new HttpHost("localhost", 9200)
         );
@@ -89,6 +93,39 @@ public class ElasticsearchService {
             e.printStackTrace();
         }
         // installIndexTemplates(); //todo fix this later
+        getOrCreateIndex(config.getEsIndex());
+    }
+
+
+    private boolean containsIndex(final String indexName) {
+        final GetIndexRequest request = new GetIndexRequest(indexName);
+        boolean exists = false;
+        try {
+            exists = restHighLevelClient.indices().exists(request, RequestOptions.DEFAULT);
+        } catch (final IOException e) {
+            log.error("Error checking existence of index {}", indexName, e);
+        }
+        return exists;
+    }
+
+    /**
+     * Get or create and return the index in Elasticsearch
+     *
+     * @param index  Elasticsearch Index
+     * @param shards Shard count
+     * @return boolean - True for created, false for already exists
+     */
+    public boolean getOrCreateIndex(final String index) throws IOException {
+        if (!containsIndex(index)) {
+            createIndex(index);
+            return true;
+        }
+        return false;
+    }
+
+    private void createIndex(String index) throws IOException {
+        CreateIndexRequest req = new CreateIndexRequest(index);
+        restHighLevelClient.indices().create(req, RequestOptions.DEFAULT);
     }
 
     private boolean containsTemplate(String name) {

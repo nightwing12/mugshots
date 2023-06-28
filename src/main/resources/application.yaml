@@ -3,3 +3,4 @@ mugshots:
   aws-key-id: "ACCESSKEYAWSUSER"
   aws-access-key: "secretKey1"
   aws-bucket-name: "mugshots"
+  es-index: "hackathon_mugshots_1.0"

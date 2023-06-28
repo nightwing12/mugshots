@@ -32,12 +32,15 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -66,27 +69,35 @@ public class ImageDataService {
         return IOUtils.toByteArray(obj.getObjectContent());
     }
 
-    public void storeImage(ImageData image) throws IOException {
-        var url = storeImageInS3(image); //returns s3 url if successful, null otherwise
+    public void storeImages(MultipartFile[] files) throws Exception {
+        var mugshots = Arrays.stream(files).map(file -> {
+            ImageData data = new ImageData();
+            data.setType(file.getContentType());
+            data.setName(file.getOriginalFilename());
+            try {
+                data.setImageData(file.getBytes());
+                var url = storeImageInS3(data);
+                var vector = getVector(data);
 
-        var mug = new Mugshot();
-        mug.setName(image.getName());
-        mug.setUrl(url);
-        mug.setVector(getVector(image));
+                var mug = new Mugshot();
+                mug.setName(data.getName());
+                mug.setUrl(url);
+                mug.setVector(vector);
+                return mug;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }).filter(Objects::isNull).collect(Collectors.toList());
 
-        storeInES(mug);
-        //todo call out to python to get vector for ES
-        //write image data to s3
+        elasticsearchService.index(config.getEsIndex(), mugshots);
     }
+
 
     private List<Float> getVector(ImageData image) {
         return null;
     }
-
-    private void storeInES(Mugshot mugshot) {
-
-    }
-
+    
     private String storeImageInS3(ImageData image) throws IOException {
         File toS3 = File.createTempFile(image.getName(), "png");
         FileOutputStream outputStream = new FileOutputStream(toS3);

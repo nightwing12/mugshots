@@ -18,7 +18,6 @@
 
 package com.uncharted.mugshots.rest;
 
-import com.uncharted.mugshots.model.ImageData;
 import com.uncharted.mugshots.service.ImageDataService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,9 +28,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.Arrays;
-
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -40,18 +36,8 @@ public class MugshotController {
     private final ImageDataService imageDataService;
 
     @PostMapping(value = "/index-images")
-    public ResponseEntity<String> indexImages(@RequestParam("image") MultipartFile[] files) throws IOException {
-        Arrays.stream(files).forEach(file -> {
-            ImageData data = new ImageData();
-            data.setType(file.getContentType());
-            data.setName(file.getOriginalFilename());
-            try {
-                data.setImageData(file.getBytes());
-                imageDataService.storeImage(data);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+    public ResponseEntity<String> indexImages(@RequestParam("image") MultipartFile[] files) throws Exception {
+        imageDataService.storeImages(files);
         return ResponseEntity.ok("yay");
     }
 

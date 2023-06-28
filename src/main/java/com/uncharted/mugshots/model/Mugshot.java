@@ -18,8 +18,11 @@
 
 package com.uncharted.mugshots.model;
 
+import lombok.Data;
+
 import java.util.List;
 
+@Data
 public class Mugshot {
     String id;
     String name;

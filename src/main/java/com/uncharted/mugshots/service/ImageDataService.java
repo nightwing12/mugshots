@@ -67,6 +67,12 @@ public class ImageDataService {
     public void storeImage(ImageData image) throws IOException {
         var url = storeImageInS3(image); //returns s3 url if successful, null otherwise
 
+        var mug = new Mugshot();
+        mug.setName(image.getName());
+        mug.setUrl(url);
+        mug.setVector(getVector(image));
+
+        storeInES(mug);
         //todo call out to python to get vector for ES
         //write image data to s3
     }

@@ -1,0 +1,32 @@
+{
+  "index_patterns": [
+    "*_mugshots_1.0"
+  ],
+  "version": 1,
+  "template": {
+    "settings": {
+      "index": {
+        "number_of_shards": 16,
+        "number_of_replicas": 1,
+        "refresh_interval": "60s"
+      }
+    },
+    "mappings": {
+      "properties": {
+        "url": {
+          "type": "keyword",
+          "ignore_above": 512
+        },
+        "vector": {
+          "type": "dense_vector",
+          "dims": 768,
+          "index": true,
+          "similarity": "dot_product"
+        },
+        "name": {
+          "type": "text"
+        }
+      }
+    }
+  }
+}

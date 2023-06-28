@@ -50,8 +50,7 @@ public class ImageDataService {
     }
 
     public void getImage(String url) {
-        s3Client.g
-
+        
     }
 
 }

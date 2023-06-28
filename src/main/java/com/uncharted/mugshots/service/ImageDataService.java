@@ -21,9 +21,10 @@ package com.uncharted.mugshots.service;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3URI;
+import com.amazonaws.util.IOUtils;
 import com.uncharted.mugshots.config.MugshotConfig;
 import com.uncharted.mugshots.model.ImageData;
 import jakarta.annotation.PostConstruct;
@@ -43,39 +44,38 @@ public class ImageDataService {
 
 
     private final MugshotConfig config;
-    private AmazonS3 s3Client;
+    private AmazonS3Client s3Client;
 
     @PostConstruct
     public void init() {
         AwsClientBuilder.EndpointConfiguration cfg = new AwsClientBuilder.EndpointConfiguration(config.getAwsUrlOverride(), "us-east-1");
 
-        s3Client = AmazonS3ClientBuilder.standard()
+        s3Client = (AmazonS3Client) AmazonS3ClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(config.getAwsKeyId(), config.getAwsAccessKey())))
                 .withEndpointConfiguration(cfg).build();
-
-        var buckets = s3Client.listBuckets();
-        int x = 0;
     }
 
-    public void getImage(String url) {
+    public byte[] getImage(String url) throws IOException {
         AmazonS3URI s3URI = new AmazonS3URI(url);
-
+        var obj = s3Client.getObject(s3URI.getBucket(), s3URI.getKey());
+        return IOUtils.toByteArray(obj.getObjectContent());
     }
 
     public void storeImage(ImageData image) throws IOException {
 
-
-        File toS3 = File.createTempFile(image.getName(), "png");
-
-        FileOutputStream outputStream = new FileOutputStream(toS3);
-        outputStream.write(image.getImageData());
-
-        var key = Arrays.hashCode(image.getImageData()); //might not want to do this?
-
-        s3Client.putObject("mugshots", String.valueOf(key), toS3);
+        var url = storeImageInS3(image); //returns s3 url if successful, null otherwise
 
         //todo call out to python to get vector for ES
         //write image data to s3
+    }
+
+    private String storeImageInS3(ImageData image) {
+        File toS3 = File.createTempFile(image.getName(), "png");
+        FileOutputStream outputStream = new FileOutputStream(toS3);
+        outputStream.write(image.getImageData());
+        var key = String.valueOf(Arrays.hashCode(image.getImageData())); //might not want to do this?
+        s3Client.putObject(config.getAwsBucketName(), key, toS3);
+        return s3Client.getResourceUrl(config.getAwsBucketName(), key);
     }
 
 }

@@ -1,0 +1,5 @@
+mugshots:
+  aws-url-override: "http://s3.localhost.localstack.cloud:4566"
+  aws-key-id: "ACCESSKEYAWSUSER"
+  aws-access-key: "secretKey1"
+  aws-bucket-name: "mugshots"

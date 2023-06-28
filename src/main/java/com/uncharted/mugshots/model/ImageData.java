@@ -16,16 +16,13 @@
  *
  */
 
-package com.uncharted.mugshots.config;
+package com.uncharted.mugshots.model;
 
 import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "mugshots")
 @Data
-public class MugshotConfig {
-    String awsUrlOverride;
-    String awsKeyId;
-    String awsAccessKey;
-    String awsBucketName;
+public class ImageData {
+    private String name;
+    private String type;
+    private byte[] imageData;
 }

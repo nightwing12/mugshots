@@ -47,6 +47,10 @@ services:
       - SERVICES=s3
       - DEBUG=1
       - DATA_DIR=/tmp/localstack/data
+    networks:
+      default:
+        aliases:
+          - s3.localhost.localstack.cloud
     volumes:
       - ./docker/localstack:/tmp/localstack
       - /var/run/docker.sock:/var/run/docker.sock

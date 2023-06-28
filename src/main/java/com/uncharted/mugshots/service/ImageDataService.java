@@ -88,7 +88,7 @@ public class ImageDataService {
                 e.printStackTrace();
                 return null;
             }
-        }).filter(Objects::isNull).collect(Collectors.toList());
+        }).filter(Objects::nonNull).collect(Collectors.toList());
 
         elasticsearchService.index(config.getEsIndex(), mugshots);
     }
@@ -97,7 +97,7 @@ public class ImageDataService {
     private List<Float> getVector(ImageData image) {
         return null;
     }
-    
+
     private String storeImageInS3(ImageData image) throws IOException {
         File toS3 = File.createTempFile(image.getName(), "png");
         FileOutputStream outputStream = new FileOutputStream(toS3);

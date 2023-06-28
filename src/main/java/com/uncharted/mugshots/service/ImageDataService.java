@@ -56,6 +56,8 @@ public class ImageDataService {
         s3Client = (AmazonS3Client) AmazonS3ClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(config.getAwsKeyId(), config.getAwsAccessKey())))
                 .withEndpointConfiguration(cfg).build();
+
+        s3Client.createBucket(config.getAwsBucketName());
     }
 
     public byte[] getImage(String url) throws IOException {

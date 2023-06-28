@@ -27,6 +27,7 @@ import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.util.IOUtils;
 import com.uncharted.mugshots.config.MugshotConfig;
 import com.uncharted.mugshots.model.ImageData;
+import com.uncharted.mugshots.model.Mugshot;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,14 +37,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ImageDataService {
 
-
     private final MugshotConfig config;
+    private final ElasticsearchService elasticsearchService;
+
     private AmazonS3Client s3Client;
 
     @PostConstruct
@@ -62,14 +65,27 @@ public class ImageDataService {
     }
 
     public void storeImage(ImageData image) throws IOException {
-
         var url = storeImageInS3(image); //returns s3 url if successful, null otherwise
 
+        var mug = new Mugshot();
+        mug.setName(image.getName());
+        mug.setUrl(url);
+        mug.setVector(getVector(image));
+
+        storeInES(mug);
         //todo call out to python to get vector for ES
         //write image data to s3
     }
 
-    private String storeImageInS3(ImageData image) {
+    private List<Float> getVector(ImageData image) {
+        return null;
+    }
+
+    private void storeInES(Mugshot mugshot) {
+
+    }
+
+    private String storeImageInS3(ImageData image) throws IOException {
         File toS3 = File.createTempFile(image.getName(), "png");
         FileOutputStream outputStream = new FileOutputStream(toS3);
         outputStream.write(image.getImageData());

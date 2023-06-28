@@ -1,0 +1,4 @@
+mugshots:
+  aws-url-override: "http://localhost:4566"
+  aws-key-id: "ACCESSKEYAWSUSER"
+  aws-access-key: "secretKey1"

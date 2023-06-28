@@ -3,6 +3,7 @@
     "*_mugshots_1.0"
   ],
   "version": 2,
+  "priority": 500,
   "template": {
     "settings": {
       "index": {

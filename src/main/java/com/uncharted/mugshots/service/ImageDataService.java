@@ -37,9 +37,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -95,7 +97,12 @@ public class ImageDataService {
 
 
     private List<Float> getVector(ImageData image) {
-        return null;
+        ArrayList<Float> vector = new ArrayList<>();
+        Random rand = new Random();
+        for (int i = 0; i < 512; i++) {
+            vector.add(rand.nextFloat());
+        }
+        return vector;
     }
 
     private String storeImageInS3(ImageData image) throws IOException {
